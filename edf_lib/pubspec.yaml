@@ -1,0 +1,10 @@
+name: edf_lib
+description: EDF read/write library for Dart
+version: 0.1.0
+environment:
+  sdk: ">=2.18.0 <4.0.0"
+
+dependencies:
+
+dev_dependencies:
+  test: ^1.0.0

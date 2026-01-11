@@ -1,0 +1,44 @@
+# Dart & Flutter
+.dart_tool/
+.packages
+pubspec.lock
+.flutter-plugins
+.flutter-plugins-dependencies
+.flutter-versions
+build/
+
+# Generated files
+.metadata
+
+# iOS/Android
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Pods/
+android/.gradle/
+android/local.properties
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Coverage & temp
+coverage/
+tmp/
+temp/
+
+# Keystore / secrets
+*.jks
+*.keystore
+
+# Other
+.pub/
+.pub-cache/
+
+.github/

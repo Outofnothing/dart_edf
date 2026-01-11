@@ -1,0 +1,18 @@
+name: edf_viewer
+description: Flutter viewer for EDF files, depends on edf_lib
+version: 0.1.0
+environment:
+  sdk: ">=2.18.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  edf_lib:
+    path: ../edf_lib
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

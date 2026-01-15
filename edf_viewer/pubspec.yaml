@@ -1,6 +1,7 @@
 name: edf_viewer
 description: Flutter viewer for EDF files, depends on edf_lib
 version: 0.1.0
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 environment:
   sdk: ">=2.18.0 <4.0.0"
 
@@ -9,6 +10,7 @@ dependencies:
     sdk: flutter
   edf_lib:
     path: ../edf_lib
+  file_picker: ^5.2.6
 
 dev_dependencies:
   flutter_test:

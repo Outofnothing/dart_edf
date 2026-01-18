@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:edf_lib/reader.dart';
 import 'package:edf_lib/edf_header.dart';
 import 'package:edf_lib/edf_signal.dart';
+import 'signal_chart.dart';
 
 void main() => runApp(EdfViewerApp());
 
@@ -63,11 +64,6 @@ class _EdfHomePageState extends State<EdfHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final signalCount = _signals?.length ?? 0;
-    final selectedSignal = (signalCount > 0 && _selectedSignal < signalCount)
-        ? _signals![_selectedSignal]
-        : null;
-
     return Scaffold(
       appBar: AppBar(title: Text('EDF Viewer')),
       body: Padding(
@@ -83,54 +79,26 @@ class _EdfHomePageState extends State<EdfHomePage> {
             ]),
             SizedBox(height: 12),
             Expanded(
-              child: SingleChildScrollView(
+              child: DefaultTabController(
+                length: 2,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Header:',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    SizedBox(height: 6),
-                    SelectableText(_headerText),
-                    SizedBox(height: 12),
-                    if (signalCount > 0) ...[
-                      Row(
+                    TabBar(
+                      labelColor: Theme.of(context).primaryColor,
+                      unselectedLabelColor: Colors.black54,
+                      tabs: [
+                        Tab(text: 'Header'),
+                        Tab(text: 'Signals'),
+                      ],
+                    ),
+                    Expanded(
+                      child: TabBarView(
                         children: [
-                          Text('Signal:'),
-                          SizedBox(width: 12),
-                          DropdownButton<int>(
-                            value: _selectedSignal,
-                            items: List.generate(signalCount, (i) {
-                              final label =
-                                  _signals![i].label.value ?? 'Signal $i';
-                              return DropdownMenuItem(
-                                  value: i, child: Text(label));
-                            }),
-                            onChanged: (v) {
-                              if (v == null) return;
-                              setState(() => _selectedSignal = v);
-                            },
-                          ),
+                          _buildHeaderView(),
+                          _buildSignalsView(),
                         ],
                       ),
-                      SizedBox(height: 12),
-                      Text(
-                          'Plot (first ${selectedSignal?.samplesCount ?? 0} samples):',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      SizedBox(height: 8),
-                      SizedBox(
-                        height: 240,
-                        child: Container(
-                          color: Colors.black12,
-                          child: selectedSignal != null
-                              ? CustomPaint(
-                                  painter:
-                                      _LineChartPainter(selectedSignal.values),
-                                  size: Size.infinite,
-                                )
-                              : Center(child: Text('No signal data')),
-                        ),
-                      ),
-                    ]
+                    ),
                   ],
                 ),
               ),
@@ -140,41 +108,52 @@ class _EdfHomePageState extends State<EdfHomePage> {
       ),
     );
   }
-}
 
-class _LineChartPainter extends CustomPainter {
-  final List<double> values;
-  _LineChartPainter(this.values);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.blue
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke;
-
-    if (values.isEmpty) return;
-
-    final minV = values.reduce((a, b) => a < b ? a : b);
-    final maxV = values.reduce((a, b) => a > b ? a : b);
-    final span = (maxV - minV) == 0 ? 1.0 : (maxV - minV);
-
-    final path = Path();
-    final stepX = size.width / (values.length - 1).clamp(1, double.infinity);
-    for (var i = 0; i < values.length; i++) {
-      final x = i * stepX;
-      final y = size.height - ((values[i] - minV) / span) * size.height;
-      if (i == 0)
-        path.moveTo(x, y);
-      else
-        path.lineTo(x, y);
-    }
-
-    canvas.drawPath(path, paint);
+  Widget _buildHeaderView() {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(8.0),
+      child:
+          SelectableText(_headerText.isEmpty ? 'No file loaded.' : _headerText),
+    );
   }
 
-  @override
-  bool shouldRepaint(covariant _LineChartPainter oldDelegate) {
-    return oldDelegate.values != values;
+  Widget _buildSignalsView() {
+    if (_signals == null || _signals!.isEmpty) {
+      return Center(child: Text('No signals loaded.'));
+    }
+
+    return ListView.builder(
+      itemCount: _signals!.length,
+      itemBuilder: (context, index) {
+        final signal = _signals![index];
+        final label = signal.label.value?.trim() ?? 'Signal $index';
+
+        return Card(
+          elevation: 2,
+          margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$label (Freq: ${signal.frequencyInHZ} Hz, Samples: ${signal.samplesCount})',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 8),
+                SizedBox(
+                  height: 200,
+                  width: double.infinity,
+                  child: SignalChart(
+                    data: signal.values,
+                    frequency: signal.frequencyInHZ,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }
